@@ -86,7 +86,9 @@ The INRS Advanced Laser Light Source Laboratory 750TW laser has many scientific 
 
 Tomography or more commonly known as computed Tomography (CT) was initially mathematically introduced in the early 20th by Johann Radon through the Radon transform and is one of the most worked on inverse problems. By taking multiple x-ray scans of an object at different angles, it is possible to reconstruct the interior of the object. The most common use of computed tomography is in the medical field, notably PET, MRI and CT scans.  \newline
 
-Unlike medical technology, with the betatron, the geometry the inversion must consider can change. This can lead to unusual situations where analytical solutions no longer exist. Non-analytical iterative solutions were developed in the 70s and are still used today. With significantly faster computation speeds due to the invention of the GPU which relies on parallelization and hardware dedicated to linear algebra, reconstructions are much faster. With the faster compute speed, secondary optimization can be performed with modern machine learning to perfect the geometry's parameters.
+Unlike medical technology, with the betatron, the geometry the inversion must consider can change. This can lead to unusual situations where analytical solutions no longer exist. Non-analytical iterative solutions were developed in the 70s and are still used today. With significantly faster computation speeds due to the invention of the GPU which relies on parallelization and hardware dedicated to linear algebra, reconstructions are much faster. With the faster compute speed, secondary optimization can be performed with modern machine learning to perfect the geometry's parameters. \newline
+
+During this internship, I worked on computed tomography for the ALLS betatron. I developed the pre-processing pipeline, worked on the computed tomography and developed an optimizer for the geometric parameters of the betatron.
 
 
 \clearpage
@@ -171,7 +173,7 @@ Once the bad pixels are found, another nearest neighbor approach is taken. In th
 
 Due to reasons such as glass between our source and the detector, horizontal and vertical streaks may appear in our frames. These streaks move and change position, phase, or frequency depending on the capture. The streaks are unwanted because they will cause streaks in the 3d reconstruction which aren't representative of the actual object scanned. \newline
 
-To remove these streaks, the image must be analyzed in the frequency domain. Because the streaks are waves, they appear as peaks in the Fourier domain. To view the images in the frequency, a 2d fast fourier transform or fft is applied. This is computationally less expensive compared to the normal discrete fourier transform and saves significant computation time due the large image size and quantity of images. \newline
+To remove these streaks, the image must be analyzed in the frequency domain. Because the streaks are waves, they appear as peaks in the Fourier domain. To view the images in the frequency, a 2d fast Fourier transform or fft is applied. This is computationally less expensive compared to the normal discrete Fourier transform and saves significant computation time due the large image size and quantity of images. \newline
 
 In the frequency domain, the low frequency zone is very data dense and, whilst the higher frequency contains more noise. A decreasing gradient is also noticeable from the low frequencies to the higher frequencies. Because the low frequency area is data dense and has generally high values, a mask is applied to this area to make sure no changes are applied. \newline
 
@@ -570,12 +572,12 @@ As seen in figure \ref{fig:Streak removal process artifacts}, the process create
 
 \begin{figure}[h]
    \centering      
-    \includegraphics[width=0.8\textwidth, angle=0]{zoom_in_fourier.pdf}
+    \includegraphics[width=0.8\textwidth, angle=0]{zoom_in_Fourier.pdf}
  \caption{Fourier domain zoom-in to peak}
  \label{fig:Zoom}
 \end{figure}
 
-Visible in figure \ref{fig:Zoom}, each peak that would eventually be suppressed has two features which aren't accounted for: vertical streaks and sub-peaks horizontal to the main peaks. Due to the naive masking of the main peaks (figure \ref{fig:Before and after fourier filtering}), the sub-peaks, which have amplitudes that are smaller than the main peaks, but larger than the background noise, won't ever be masked. The vertical streaks, which have larger values than the average noise behind, also won't be masked.
+Visible in figure \ref{fig:Zoom}, each peak that would eventually be suppressed has two features which aren't accounted for: vertical streaks and sub-peaks horizontal to the main peaks. Due to the naive masking of the main peaks (figure \ref{fig:Before and after Fourier filtering}), the sub-peaks, which have amplitudes that are smaller than the main peaks, but larger than the background noise, won't ever be masked. The vertical streaks, which have larger values than the average noise behind, also won't be masked.
 \newline
 
 
@@ -594,8 +596,8 @@ Visible in figure \ref{fig:Zoom}, each peak that would eventually be suppressed 
 
   \end{subfigure}%
 
-    \caption{Before and after fourier filtering}
-    \label{fig:Before and after fourier filtering}
+    \caption{Before and after Fourier filtering}
+    \label{fig:Before and after Fourier filtering}
 \end{figure}
 
 
@@ -603,7 +605,7 @@ An easy approach would be to mask a larger area, but to reduce data loss, this i
 
 \subsubsection{Image alignment}
 
-The approach used for aligning the different frames of the same angle is less naive than the fourier filtering, but has its drawbacks too. \newline
+The approach used for aligning the different frames of the same angle is less naive than the Fourier filtering, but has its drawbacks too. \newline
 
 As previously mentioned in the methodology, images' whose corrected shift were clearly unusual were discarded. This was done because for some unknown reason, for certain frames of the same shot, the shift was too large and caused bad averages. Because 30 shots were taken per angle, a few being discarded doesn't really cause a large difference. If one wanted to fix this, it's really a matter of finding a feature extraction process that reduces the amount shots discarded. \newline
 
@@ -611,10 +613,14 @@ All the images were aligned to the first of the set, which is arbitrary. A bette
 
 \subsubsection{Parameters optimization} 
 
-Humans are able to differentiate between clear and non-clear reconstructions and it is difficult to quantify this clearness, especially in a voxelized space. Instead of re-projecting the reconstructions and comparing them to the original scans, it would be interesting to develop a CNN-based no-reference image quality metric trained on a custom dataset. This dataset would be created by finding a dataset of 3d models, voxelizing them, projecting them and then re-projecting them with a different geometry. The loss would be the difference between the original voxel model and the faulty re-projection. This has been done on images by Kamal Lamichhane and has an interesting potential in this situation \cite{LAMICHHANE2023116899}.As previously mentioned in the methodology, images' whose corrected shift were clearly unusual were discarded. This was done because for some unknown reason, for certain frames of the same shot, the shift was too large and caused bad averages. Because 30 shots were taken per angle, a few being discarded doesn't really cause a large difference. If one wanted to fix this, it's really a matter of finding a feature extraction process that reduces the amount shots discarded. \newline
+Humans are able to differentiate between clear and non-clear reconstructions and it is difficult to quantify this clearness, especially in a voxelized space. Instead of re-projecting the reconstructions and comparing them to the original scans, it would be interesting to develop a CNN-based no-reference image quality metric trained on a custom dataset. This dataset would be created by finding a dataset of 3d models, voxelizing them, projecting them and then re-projecting them with a different geometry. The loss would be the difference between the original voxel model and the faulty re-projection. This has been done on images by Kamal Lamichhane and has an interesting potential in this situation \cite{LAMICHHANE2023116899}.\newline
 
 
-Another approach would be to develop a reinforcement learning agent that learns how to move in the tomographic reconstruction space. The agent would be able to move, meaning change the geometric parameters, and learn optimal paths to optimize the reconstruction using the difference between its current faulty reconstruction and the correct reconstruction as the reward. This would speed of the lengthy bayesian optimization. 
+Another approach would be to develop a reinforcement learning agent that learns how to move in the tomographic reconstruction space. The agent would be able to move, meaning change the geometric parameters, and learn optimal paths to optimize the reconstruction using the difference between its current faulty reconstruction and the correct reconstruction as the reward. This would speed of the lengthy Bayesian optimization. \newline
+
+Lastly, there were parameters which we never considered. The angle between each frame was considered to be constant. Though more lengthy because of the sheer number of frames, final fine-tuning could be done by individually tweaking the angles for each frame. 
+
+
 
 
 \section{Conclusion}
@@ -789,12 +795,12 @@ All the visualization tools are in the \verb|projection_visualization.py| file. 
 \begin{verbatim}TomoALLS.src.projection_visualization.fft_viewer(images)
 \end{verbatim}
 \begin{adjustwidth}{1cm}{}
-    This function displays with napari the fourier transforms of a sequence of images (it applies the fourier transform to each image) \\
+    This function displays with napari the Fourier transforms of a sequence of images (it applies the Fourier transform to each image) \\
     \textbf{Parameters}
     \begin{adjustwidth}{1cm}{}
         \textbf{images}
             \begin{adjustwidth}{0.5cm}{}
-            [np.array] 3d np.array of the projections to be fourier transformed and displayed
+            [np.array] 3d np.array of the projections to be Fourier transformed and displayed
             \end{adjustwidth}
     \end{adjustwidth}
 \end{adjustwidth}
@@ -1077,7 +1083,7 @@ width, dtype=np.uint16)
 \begin{verbatim}TomoALLS.src.projection_preprocessing.remove_streaks(image,max_iterations=20)
 \end{verbatim}
 \begin{adjustwidth}{1cm}{}
-    This function removes the streaks by finding peaks in the fourier domain.  \\
+    This function removes the streaks by finding peaks in the Fourier domain.  \\
     \textbf{Parameters}
     \begin{adjustwidth}{1cm}{}
         \textbf{image}
@@ -1086,7 +1092,7 @@ width, dtype=np.uint16)
             \end{adjustwidth}
         \textbf{max\_iterations}
             \begin{adjustwidth}{0.5cm}{}
-            [int] Amount of peaks removed in the fourier domain
+            [int] Amount of peaks removed in the Fourier domain
             \end{adjustwidth}
     \end{adjustwidth}
     \textbf{Return}
